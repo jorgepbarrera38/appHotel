@@ -2,6 +2,30 @@
     <div class="my-3 my-md-5">
           <div class="container">
             <div class="row row-cards row-deck">
+              <div class="col-6 col-sm-4 col-lg-2">
+                <div class="card">
+                  <div class="card-body p-3 text-center">
+                    <div class="text-right text-green">
+                      6%
+                      <i class="fe fe-chevron-up"></i>
+                    </div>
+                    <div class="h1 m-0">43</div>
+                    <div class="text-muted mb-4">Total de habitaciónes</div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-6 col-sm-4 col-lg-2">
+                <div class="card">
+                  <div class="card-body p-3 text-center">
+                    <div class="text-right text-green">
+                      6%
+                      <i class="fe fe-chevron-up"></i>
+                    </div>
+                    <div class="h1 m-0">27</div>
+                    <div class="text-muted mb-4">Habitaciónes activas</div>
+                  </div>
+                </div>
+              </div>
               <div class="col-12">
                 <div class="card">
                   <div class="card-header">
@@ -11,7 +35,7 @@
                     </div>
                   </div>
                   <div class="table-responsive">
-                    <table class="table card-table table-vcenter text-nowrap">
+                    <table class="table table-hover card-table table-vcenter text-nowrap">
                       <thead>
                         <tr>
                           <th>Número</th>
@@ -39,10 +63,32 @@
                             <button class="btn btn-info btn-sm" v-on:click="showHabitation(item.id)"><i class="fe fe-eye"></i></button>
                             <button class="btn btn-warning btn-sm" v-on:click="editHabitation(item.id)"><i class="fe fe-edit-3"></i></button>
                             <button class="btn btn-danger btn-sm" v-on:click="deleteHabitation(item.id, item.number)"><i class="fe fe-trash-2"></i></button>
+                            <button class="btn btn-default btn-sm" v-on:click="deleteHabitation(item.id, item.number)"><i class="fe fe-trash-2"></i></button>
                           </td>
                         </tr>
                       </tbody>
                     </table>
+                    <div class="card-footer">
+                      <nav aria-label="Page navigation example">
+                      <ul class="pagination">
+                        <li class="page-item" v-if="pagination.current_page > 1">
+                          <a class="page-link" href="" v-on:click.prevent="changePage(pagination.current_page - 1)">
+                            <span>Atrás</span>
+                          </a>
+                        </li>
+                        <li class="page-item" v-for="page in pagesNumber" v-bind:class="[ page == isActived ? 'active' : '' ]">
+                          <a class="page-link" href="" v-on:click.prevent="changePage(page)">
+                            {{ page }}
+                          </a>
+                        </li>
+                        <li class="page-item" v-if="pagination.current_page < pagination.last_page">
+                          <a class="page-link" href="" v-on:click.prevent="changePage(pagination.current_page + 1)">
+                            <span>Siguiente</span>
+                          </a>
+                        </li>
+                      </ul>
+                    </nav>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -172,13 +218,22 @@
             },
             errors:null,
             habitations:[],
-            editHabitationState: false
+            editHabitationState: false,
+            pagination: {
+                total: 0,
+                current_page: 0,
+                per_page : 0,
+                last_page: 0,
+                from: 0,
+                to: 0
+            }
           }
         },
         methods: {
-          getHabitations(){
-            axios.get('api/rooms?api_token='+sessionStorage.getItem('api_token')).then(response=>{
-              this.habitations = response.data;
+          getHabitations(page){
+            axios.get('api/rooms?api_token='+sessionStorage.getItem('api_token')+'&page='+page).then(response=>{
+              this.habitations = response.data.rooms.data;
+              this.pagination = response.data.pagination;
             }).catch(error=>{
               if (error.response.status==401) {
                 sessionStorage.removeItem('api_token');
@@ -223,6 +278,8 @@
             axios.delete('api/rooms/'+habitationId+'?api_token='+sessionStorage.getItem('api_token')).then(response=>{
               this.getHabitations();
               toastr.success(`La habitación ${ habitationNumber } ha sido eliminada`);
+            }).catch(error=>{
+              toastr.error('No se pudo eliminar la habitación');
             });
           },
           editHabitation(habitationId){
@@ -236,6 +293,8 @@
               this.habitation.description = response.data.description;
               this.editHabitationState = true;
               $('#modalAddHabitation').modal('show');
+            }).catch(error=>{
+              toastr.error('Ocurrió un error al cargar la habitación');
             });
           },
           updateHabitation(habitationId){
@@ -254,10 +313,40 @@
             axios.get('api/rooms/'+habitationId+'?api_token='+sessionStorage.getItem('api_token')).then(response=>{
               this.habitation = response.data;
               $('#showHabitationModal').modal('show');
+            }).catch(error=>{
+              toastr.error('Ocurrió un error al cargar la haitación');
             });
           },
           convertToMoney(number){
             return formatNum(number);
+          },
+          changePage(page){
+            this.pagination.current_page = page;
+            this.getHabitations(page);
+          }
+        },
+        computed: {
+          isActived(){
+            return this.pagination.current_page;
+          },
+          pagesNumber(){
+            if (!this.pagination.to) {
+              return []
+            }
+            var from = this.pagination.current_page - 2; //TODO
+            if (from < 1) {
+              from = 1;
+            }
+            var to = from + (2 * 2);
+            if (to >= this.pagination.last_page) {
+              to = this.pagination.last_page;
+            }
+            var pagesArray = [];
+            while (from <= to) {
+              pagesArray.push(from);
+              from++;
+            }
+            return pagesArray;
           }
         }
     }

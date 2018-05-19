@@ -13,12 +13,14 @@ import AppMain from './AppMain'
 import LoginComponent from './components/LoginComponent'
 import RoomComponent from './components/RoomComponent'
 import NotFoundComponent from './components/NotFoundComponent'
+import ClientComponent from './components/ClientComponent'
 
 Vue.use(VueRouter);
 
 const routes = [
     { path:'/login', name:'login', component: LoginComponent},
     { path:'/rooms', name:'rooms', component: RoomComponent},
+    { path:'/clients', name:'clients', component: ClientComponent},
     { path:'*', component: NotFoundComponent }
 ]
 

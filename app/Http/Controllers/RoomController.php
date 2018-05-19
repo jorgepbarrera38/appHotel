@@ -13,10 +13,20 @@ class RoomController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function index(Request $request)
     {
-        $rooms = Room::orderBy('number', 'asc')->get();
-        return $rooms;
+        $rooms = Room::orderBy('number', 'asc')->paginate(6);
+        return [
+            'pagination' => [
+                'total' => $rooms->total(),
+                'current_page' => $rooms->currentPage(),
+                'per_page' => $rooms->perPage(),
+                'last_page' => $rooms->lastPage(),
+                'from' => $rooms->firstItem(),
+                'to' => $rooms->lastPage()
+            ],
+            'rooms' => $rooms
+        ];
     }
 
     /**
