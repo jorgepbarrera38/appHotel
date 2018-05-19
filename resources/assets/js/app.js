@@ -12,12 +12,14 @@ import VueRouter from 'vue-router'
 import AppMain from './AppMain'
 import LoginComponent from './components/LoginComponent'
 import RoomComponent from './components/RoomComponent'
+import NotFoundComponent from './components/NotFoundComponent'
 
 Vue.use(VueRouter);
 
 const routes = [
     { path:'/login', name:'login', component: LoginComponent},
     { path:'/rooms', name:'rooms', component: RoomComponent},
+    { path:'*', component: NotFoundComponent }
 ]
 
 const router = new VueRouter({
